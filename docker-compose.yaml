@@ -1,0 +1,89 @@
+version: "3.7"
+
+services:
+  siteSymfony:
+    image: "qwertyjuju/deb_symfony:1.0"
+    container_name: serv_web
+    stdin_open: true
+    tty: true
+    environment:
+      - GIT_REPO=https://github.com/qwertyjuju/site_presentation
+    ports:
+      - 82:80
+    networks:
+      - servnet
+  symfonydb:
+    image: "mariadb:latest"
+    container_name: symfonydb
+    volumes:
+      - H:\SAE23\repDB:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_USER=blog_user
+      - MARIADB_DATABASE=mariadb
+      - MARIADB_PASSWORD=S3Cr3T!
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=yes
+    networks:
+      - servnet
+  symfony_db_admin:
+    image: "phpmyadmin:latest"
+    container_name: symfony_db_admin
+    environment:
+      - PMA_HOST=symfonydb
+    ports:
+      - 9000:80
+    networks:
+      - servnet
+    depends_on:
+      - symfonydb
+  wordpress:
+    image: "wordpress:latest"
+    container_name: wordpress
+    environment:
+      - WORDPRESS_DB_HOST=symfonydb
+      - WORDPRESS_DB_USER=blog_user
+      - WORDPRESS_DB_PASSWORD=S3Cr3T!
+      - WORDPRESS_DB_NAME=mariadb
+    ports:
+      - 80:80
+    volumes:
+      - H:\SAE23\repWP:/var/www/html
+    depends_on:
+      - symfonydb
+    links:
+      - symfonydb
+    networks:
+      - servnet
+  rocketchat:
+    image: rocket.chat:latest
+    restart: on-failure
+    container_name: rocketchat
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/local/?replicaSet=rs0
+      - MONGO_OPLOG_URL=mongodb://mongodb:27017/local
+    networks:
+      - servnet
+    links:
+      - mongodb
+    depends_on:
+      - mongodb   
+    ports:
+      - 8000:3000
+  mongodb:
+    image: bitnami/mongodb:4.4
+    container_name: mongodb
+    environment:
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_NAME=rs0
+      - MONGODB_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb
+      - MONGODB_ENABLE_JOURNAL=true
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - servnet
+networks:
+  servnet:
+    name: servnet
