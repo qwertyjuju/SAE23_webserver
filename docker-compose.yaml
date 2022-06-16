@@ -1,8 +1,8 @@
 version: "3.7"
 
 # ports used:
-# 80 -> site symfony
-# 82 -> site wordpress
+# 80 -> site wordpress
+# 82 -> site symfony
 # 3000 -> rocketchat
 # 3306 -> mariadb
 # 9000 -> PHPmyadmin
@@ -17,7 +17,7 @@ services:
     environment:
       - GIT_REPO=https://github.com/qwertyjuju/site_presentation
     ports:
-      - 80:80
+      - 82:80
     networks:
       - servnet
 
@@ -60,7 +60,7 @@ services:
       - WORDPRESS_DB_PASSWORD=S3Cr3T!
       - WORDPRESS_DB_NAME=mariadb
     ports:
-      - 82:80
+      - 80:80
     volumes:
       - .\repWP:/var/www/html
     depends_on:
