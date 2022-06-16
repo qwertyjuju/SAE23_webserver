@@ -1,6 +1,14 @@
 version: "3.7"
 
+# ports used:
+# 80 -> site wordpress
+# 82 -> site symfony
+# 3000 -> rocketchat
+# 3306 -> mariadb
+# 9000 -> PHPmyadmin
+
 services:
+  # symfony
   siteSymfony:
     image: "qwertyjuju/deb_symfony:1.0"
     container_name: serv_web
@@ -12,11 +20,13 @@ services:
       - 82:80
     networks:
       - servnet
+
+  # symfony and wordpress database (mariadb)
   symfonydb:
     image: "mariadb:latest"
     container_name: symfonydb
     volumes:
-      - H:\SAE23\repDB:/var/lib/mysql
+      - .\repDB:/var/lib/mysql
     ports:
       - 3306:3306
     environment:
@@ -26,6 +36,8 @@ services:
       - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=yes
     networks:
       - servnet
+
+  # PHPmyAdmin
   symfony_db_admin:
     image: "phpmyadmin:latest"
     container_name: symfony_db_admin
@@ -37,6 +49,8 @@ services:
       - servnet
     depends_on:
       - symfonydb
+
+  # Wordpress
   wordpress:
     image: "wordpress:latest"
     container_name: wordpress
@@ -48,20 +62,24 @@ services:
     ports:
       - 80:80
     volumes:
-      - H:\SAE23\repWP:/var/www/html
+      - .\repWP:/var/www/html
     depends_on:
       - symfonydb
     links:
       - symfonydb
     networks:
       - servnet
+
+  # rocketchat
   rocketchat:
     image: rocket.chat:latest
     restart: on-failure
     container_name: rocketchat
     environment:
-      - MONGO_URL=mongodb://mongodb:27017/local/?replicaSet=rs0
-      - MONGO_OPLOG_URL=mongodb://mongodb:27017/local
+      - MONGO_URL=mongodb://mongodb:27017/local?replicaSet=rs0
+      - MONGO_OPLOG_URL=mongodb://mongodb:27017/local?replicaSet=rs0
+      - ROOT_URL=http://rocketchat:3000
+      - PORT=3000
     networks:
       - servnet
     links:
@@ -69,11 +87,14 @@ services:
     depends_on:
       - mongodb   
     ports:
-      - 8000:3000
+      - 3000:3000
+  
+  # mongodb for rocketchat
   mongodb:
     image: bitnami/mongodb:4.4
     container_name: mongodb
     environment:
+      - MONGODB_DATABASE=mongodb
       - MONGODB_REPLICA_SET_MODE=primary
       - MONGODB_REPLICA_SET_NAME=rs0
       - MONGODB_PORT_NUMBER=27017

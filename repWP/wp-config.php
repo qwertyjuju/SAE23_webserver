@@ -29,7 +29,7 @@ define( 'DB_USER', 'blog_user' );
 define( 'DB_PASSWORD', 'S3Cr3T!' );
 
 /** Database hostname */
-define( 'DB_HOST', 'mariadb' );
+define( 'DB_HOST', 'symfonydb' );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8mb4' );
