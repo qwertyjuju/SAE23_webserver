@@ -12,6 +12,7 @@ services:
   siteSymfony:
     image: "qwertyjuju/deb_symfony:1.0"
     container_name: serv_web
+    restart: on-failure
     stdin_open: true
     tty: true
     environment:
